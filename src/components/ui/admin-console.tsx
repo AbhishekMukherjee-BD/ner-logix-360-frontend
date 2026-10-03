@@ -34,6 +34,7 @@ import {
   Image as ImageIcon,
   X
 } from "lucide-react"
+import { FALLBACK_SYSTEM_HEALTH, FALLBACK_SCENARIOS } from "@/lib/mock-data"
 
 interface Scenario {
   id: string
@@ -55,7 +56,7 @@ interface AdminConsoleProps {
 export function AdminConsole({ onSwitchToDispatcher, onSwitchToDriver }: AdminConsoleProps) {
   // Navigation tab state
   const [adminTab, setAdminTab] = useState<'risk_matrix' | 'simulator'>('risk_matrix')
-  const [systemHealth, setSystemHealth] = useState<any | null>(null)
+  const [systemHealth, setSystemHealth] = useState<any | null>(FALLBACK_SYSTEM_HEALTH)
   const [isScanningRisk, setIsScanningRisk] = useState(false)
 
   // Autopilot state
@@ -67,7 +68,7 @@ export function AdminConsole({ onSwitchToDispatcher, onSwitchToDriver }: AdminCo
   const autopilotTimer = useRef<any>(null)
 
   // Disaster injector state
-  const [scenarios, setScenarios] = useState<Scenario[]>([])
+  const [scenarios, setScenarios] = useState<Scenario[]>(FALLBACK_SCENARIOS as any)
   const [selectedScenario, setSelectedScenario] = useState<string>('nongpoh_flooding')
   const [nh6FleetState, setNh6FleetState] = useState<any>(null)
   const [isInjecting, setIsInjecting] = useState(false)

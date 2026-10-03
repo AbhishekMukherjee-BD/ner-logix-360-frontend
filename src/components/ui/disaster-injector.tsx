@@ -18,6 +18,7 @@ import {
   Radio,
   X
 } from "lucide-react"
+import { FALLBACK_SCENARIOS } from "@/lib/mock-data"
 
 interface Scenario {
   id: string
@@ -38,7 +39,7 @@ interface DisasterInjectorProps {
 }
 
 export function DisasterInjector({ isOpen, onClose, onIncidentCreated }: DisasterInjectorProps) {
-  const [scenarios, setScenarios] = useState<Scenario[]>([])
+  const [scenarios, setScenarios] = useState<Scenario[]>(FALLBACK_SCENARIOS as any)
   const [selectedScenario, setSelectedScenario] = useState<string>('sonapur_landslide')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any | null>(null)

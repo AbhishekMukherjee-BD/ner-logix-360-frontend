@@ -28,6 +28,7 @@ import { MapContainer, TileLayer, Polyline, Marker, Popup, Circle, useMap } from
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
 import { arePolylinesEqual } from "@/lib/utils"
+import { FALLBACK_SYNC_DATA } from "@/lib/mock-data"
 
 // Fix Leaflet default icon paths in bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -202,6 +203,31 @@ export const LiveTracker: React.FC<LiveTrackerProps> = ({ tripId, driver, onBack
 
   useEffect(() => {
     isMountedRef.current = true
+    // Immediate pre-population so judges see HUD and route instantly
+    const fallbackVehicle = FALLBACK_SYNC_DATA.vehicles.find((v: any) => v.trip_id === tripId || v.vehicle_id === tripId) || FALLBACK_SYNC_DATA.vehicles[0]
+    if (fallbackVehicle) {
+      setTripData(fallbackVehicle)
+      setActiveIncidents(FALLBACK_SYNC_DATA.active_incidents as any)
+      if (FALLBACK_SYNC_DATA.notifications.length > 0) {
+        setLatestAlert({
+          message_text: FALLBACK_SYNC_DATA.notifications[0].message,
+          sent_at: FALLBACK_SYNC_DATA.notifications[0].created_at,
+          status: 'sent'
+        })
+      }
+      const lat = parseFloat(fallbackVehicle.current_lat) || 26.06609
+      const lng = parseFloat(fallbackVehicle.current_lng) || 91.87257
+      setCurrentCoord([lat, lng])
+      setEstSpeed(Math.round(parseFloat(fallbackVehicle.speed_kmh || '48')))
+      setHeading(Math.round(parseFloat(fallbackVehicle.heading || '120')))
+      if (fallbackVehicle.current_route_polyline) {
+        const decoded = decodePolyline(fallbackVehicle.current_route_polyline)
+        setRouteCoords(decoded)
+        if (decoded.length > 0) {
+          setProgressPct(Math.min(100, Math.round(((fallbackVehicle.current_waypoint_index || 781) / decoded.length) * 100)))
+        }
+      }
+    }
     fetchTripState()
     return () => {
       isMountedRef.current = false

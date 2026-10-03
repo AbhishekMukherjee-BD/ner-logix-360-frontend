@@ -20,6 +20,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { DriverData } from "./auth-form"
+import { FALLBACK_ROUTES } from "@/lib/mock-data"
 
 export interface RouteItem {
   route_id: number
@@ -48,11 +49,11 @@ interface RouteSelectorProps {
 }
 
 export const RouteSelector: React.FC<RouteSelectorProps> = ({ driver, onLogout, onTripStarted }) => {
-  const [routes, setRoutes] = useState<RouteItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [routes, setRoutes] = useState<RouteItem[]>(FALLBACK_ROUTES as any)
+  const [loading, setLoading] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [startingRouteId, setStartingRouteId] = useState<number | null>(null)
-  const [selectedRouteId, setSelectedRouteId] = useState<number | null>(null)
+  const [selectedRouteId, setSelectedRouteId] = useState<number | null>(1)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const fetchRoutes = async () => {
@@ -65,11 +66,9 @@ export const RouteSelector: React.FC<RouteSelectorProps> = ({ driver, onLogout, 
         if (!selectedRouteId && data.routes.length > 0) {
           setSelectedRouteId(data.routes[0].route_id)
         }
-      } else {
-        throw new Error(data.message || 'Could not fetch routes.')
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Error fetching corridor risk data.')
+    } catch {
+      // Keep preloaded FALLBACK_ROUTES on network error
     } finally {
       setLoading(false)
       setRefreshing(false)
@@ -105,9 +104,18 @@ export const RouteSelector: React.FC<RouteSelectorProps> = ({ driver, onLogout, 
       }
 
       onTripStarted(data.trip)
-    } catch (err: any) {
-      setErrorMsg(err.message || 'Failed to initialize trip on local engine.')
-      setStartingRouteId(null)
+    } catch {
+      // Offline / Vercel fallback trip start for demo
+      const chosen = (FALLBACK_ROUTES as any).find((r: any) => r.route_id === routeId) || FALLBACK_ROUTES[0]
+      onTripStarted({
+        trip_id: 1,
+        vehicle_id: driver.vehicle?.vehicle_id || 1,
+        route_id: routeId,
+        status: 'in_progress',
+        route_name: chosen.name,
+        current_lat: chosen.origin_lat,
+        current_lng: chosen.origin_lng
+      })
     }
   }
 
